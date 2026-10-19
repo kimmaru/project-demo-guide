@@ -146,45 +146,38 @@ a {
   margin-bottom: 48px;
 }
 
-.service-pill {
+.site-link-bar {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   background: var(--color-surface-1);
   border: 1px solid var(--color-border);
-  padding: 6px 12px;
-  border-radius: var(--radius-pill);
+  padding: 6px 14px;
+  border-radius: var(--radius-sm);
   font-size: 13px;
-  margin-bottom: 18px;
+  margin-bottom: 20px;
   flex-wrap: wrap;
 }
 
-.pill-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background-color: var(--color-success);
-}
-
-.pill-text {
-  font-size: 12px;
-  font-weight: 500;
-  color: #34d399;
-}
-
-.pill-sep {
+.link-bar-label {
+  font-size: 11px;
+  font-weight: 600;
   color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
-.pill-link {
+.primary-site-link {
   font-family: var(--font-mono);
-  font-size: 12px;
+  font-size: 13px;
+  font-weight: 500;
   color: #38bdf8;
   text-decoration: underline;
   text-underline-offset: 3px;
+  transition: var(--transition-fast);
 }
 
-.pill-link:hover {
+.primary-site-link:hover {
   color: #7dd3fc;
 }
 
@@ -193,16 +186,23 @@ a {
   font-weight: 600;
   letter-spacing: -0.025em;
   color: #ffffff;
-  margin-bottom: 12px;
+  margin-bottom: 14px;
   line-height: 1.3;
 }
 
 .hero-description {
-  font-size: 15px;
+  font-size: 14.5px;
   color: var(--color-text-body);
-  max-width: 720px;
-  line-height: 1.65;
+  max-width: 860px;
+  line-height: 1.7;
   margin-bottom: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.hero-description p {
+  margin: 0;
 }
 
 /* Credentials Panel */
@@ -529,18 +529,6 @@ a {
   to { opacity: 1; transform: translateY(0); }
 }
 
-.pane-content-grid {
-  display: grid;
-  grid-template-columns: 1fr 1.3fr;
-  gap: 32px;
-  align-items: start;
-}
-
-@media (max-width: 900px) {
-  .pane-content-grid {
-    grid-template-columns: 1fr;
-  }
-}
 
 .pane-info {
   display: flex;
@@ -717,7 +705,28 @@ a {
   margin-top: 1px;
 }
 
-/* Image Viewer Box */
+.pane-content-grid {
+  display: grid;
+  grid-template-columns: 1.15fr 0.95fr;
+  gap: 28px;
+  align-items: center;
+}
+
+@media (max-width: 900px) {
+  .pane-content-grid {
+    grid-template-columns: 1fr;
+    align-items: start;
+  }
+}
+
+.pane-visual {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+}
+
+/* Image Viewer Box (높이를 데스크탑 기준 절반으로 축소) */
 .image-viewer-box {
   background: #08090d;
   border: 1px solid var(--color-border);
@@ -725,19 +734,25 @@ a {
   overflow: hidden;
   cursor: pointer;
   transition: var(--transition-fast);
+  width: 100%;
+  max-width: 440px;
+  display: flex;
+  flex-direction: column;
 }
 
 .image-viewer-box:hover {
   border-color: rgba(255, 255, 255, 0.18);
+  transform: translateY(-2px);
 }
 
 .viewer-top-bar {
   background: #11131c;
-  padding: 8px 12px;
+  padding: 6px 12px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  flex-shrink: 0;
 }
 
 .bar-title {
@@ -753,9 +768,11 @@ a {
 
 .viewer-image {
   width: 100%;
-  height: auto;
+  height: 320px;
+  max-height: 320px;
   display: block;
-  object-fit: cover;
+  object-fit: contain;
+  background-color: #050609;
 }
 
 /* ==========================================================================
