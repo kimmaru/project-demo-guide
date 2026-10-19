@@ -1,30 +1,91 @@
 /**
- * Detective Escape Room — Demo & Walkthrough Guide Scripts
- * Features: Instant copy-to-clipboard, toast feedback, screenshot lightbox modal.
+ * Detective Escape Room — Project Demo & Walkthrough Guide
+ * Features: Synchronized Pipeline Workflow, Tab Navigation, Clean Copy Interaction, Lightbox
  */
 
 document.addEventListener('DOMContentLoaded', () => {
+  initWorkflowSync();
   initClipboardCopy();
-  initScreenshotLightbox();
+  initLightbox();
 });
 
 /* ==========================================================================
-   1. Clipboard Copy with Toast Feedback
+   1. Synchronized Workflow Pipeline & Stage Tabs
+   ========================================================================== */
+function initWorkflowSync() {
+  const pipelineCards = document.querySelectorAll('.pipeline-card');
+  const stageTabs = document.querySelectorAll('.stage-tab-btn');
+  const stagePanes = document.querySelectorAll('.stage-pane');
+
+  function switchStep(stepNumber, shouldScroll = false) {
+    const stepStr = String(stepNumber);
+
+    // Update pipeline cards active state
+    pipelineCards.forEach(card => {
+      const target = card.getAttribute('data-step-target');
+      card.classList.toggle('active', target === stepStr);
+    });
+
+    // Update stage tab buttons active state
+    stageTabs.forEach(tab => {
+      const tabTarget = tab.getAttribute('data-tab');
+      const isActive = tabTarget === stepStr;
+      tab.classList.toggle('active', isActive);
+      tab.setAttribute('aria-selected', isActive ? 'true' : 'false');
+    });
+
+    // Update stage detail panes
+    stagePanes.forEach(pane => {
+      const isTargetPane = pane.id === `pane-${stepStr}`;
+      pane.classList.toggle('active', isTargetPane);
+    });
+
+    // Scroll to interactive section if triggered from top pipeline board
+    if (shouldScroll) {
+      const targetSection = document.getElementById('interactive-stage-section');
+      if (targetSection) {
+        targetSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }
+  }
+
+  // Click on pipeline board cards
+  pipelineCards.forEach(card => {
+    card.addEventListener('click', () => {
+      const step = card.getAttribute('data-step-target');
+      if (step) {
+        switchStep(step, true);
+      }
+    });
+  });
+
+  // Click on stage tab buttons
+  stageTabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      const step = tab.getAttribute('data-tab');
+      if (step) {
+        switchStep(step, false);
+      }
+    });
+  });
+}
+
+/* ==========================================================================
+   2. Clean Minimal Clipboard Copy
    ========================================================================== */
 function initClipboardCopy() {
-  const copyTriggers = document.querySelectorAll('.copy-trigger');
-  
-  copyTriggers.forEach(trigger => {
-    trigger.addEventListener('click', async (e) => {
+  const copyButtons = document.querySelectorAll('.copy-trigger');
+
+  copyButtons.forEach(btn => {
+    btn.addEventListener('click', async (e) => {
       e.stopPropagation();
-      const textToCopy = trigger.getAttribute('data-copy');
+      const textToCopy = btn.getAttribute('data-copy');
       if (!textToCopy) return;
 
       try {
         if (navigator.clipboard && window.isSecureContext) {
           await navigator.clipboard.writeText(textToCopy);
         } else {
-          // Fallback for older contexts
           const textArea = document.createElement('textarea');
           textArea.value = textToCopy;
           textArea.style.position = 'fixed';
@@ -36,63 +97,49 @@ function initClipboardCopy() {
           textArea.remove();
         }
 
-        // Visual feedback on button/trigger
-        const originalText = trigger.innerText;
-        const copyTextEl = trigger.querySelector('.copy-text');
-        
-        if (copyTextEl) {
-          copyTextEl.textContent = '복사 완료! ✓';
-        } else {
-          trigger.innerText = '복사 완료! ✓';
-        }
-        trigger.classList.add('copied');
+        const originalText = btn.innerText;
+        btn.innerText = '복사됨 ✓';
+        btn.classList.add('copied');
 
-        showToast(`"${textToCopy}" 복사되었습니다.`);
+        showMinimalToast(`클립보드에 복사되었습니다: ${textToCopy}`);
 
         setTimeout(() => {
-          if (copyTextEl) {
-            copyTextEl.textContent = '복사';
-          } else {
-            trigger.innerText = originalText;
-          }
-          trigger.classList.remove('copied');
-        }, 1800);
+          btn.innerText = originalText;
+          btn.classList.remove('copied');
+        }, 1600);
 
       } catch (err) {
-        console.error('Failed to copy text: ', err);
-        showToast('클립보드 복사에 실패했습니다.');
+        console.error('Failed to copy: ', err);
+        showMinimalToast('복사 실패');
       }
     });
   });
 }
 
-function showToast(message) {
-  const container = document.getElementById('toast-container');
-  if (!container) return;
+function showMinimalToast(text) {
+  const shelf = document.getElementById('toast-shelf');
+  if (!shelf) return;
 
   const toast = document.createElement('div');
-  toast.className = 'toast';
+  toast.className = 'minimal-toast';
   toast.innerHTML = `
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-      <polyline points="20 6 9 17 4 12"></polyline>
-    </svg>
-    <span>${message}</span>
+    <span class="toast-dot-success"></span>
+    <span>${text}</span>
   `;
 
-  container.appendChild(toast);
+  shelf.appendChild(toast);
 
   setTimeout(() => {
-    toast.classList.add('toast-fadeout');
-    setTimeout(() => {
-      toast.remove();
-    }, 200);
-  }, 2200);
+    toast.style.opacity = '0';
+    toast.style.transition = 'opacity 0.2s ease';
+    setTimeout(() => toast.remove(), 200);
+  }, 2000);
 }
 
 /* ==========================================================================
-   2. Screenshot Lightbox Modal
+   3. Lightbox Inspection Modal
    ========================================================================== */
-function initScreenshotLightbox() {
+function initLightbox() {
   const modal = document.getElementById('lightbox-modal');
   const modalImg = document.getElementById('lightbox-img');
   const modalCaption = document.getElementById('lightbox-caption');
@@ -101,41 +148,39 @@ function initScreenshotLightbox() {
 
   if (!modal || !modalImg) return;
 
-  const screenshotWindows = document.querySelectorAll('.screenshot-window');
-
-  function openModal(imgSrc, caption) {
-    modalImg.src = imgSrc;
+  function openLightbox(src, caption) {
+    modalImg.src = src;
     modalCaption.textContent = caption || '';
     modal.classList.add('active');
     modal.setAttribute('aria-hidden', 'false');
     document.body.style.overflow = 'hidden';
   }
 
-  function closeModal() {
+  function closeLightbox() {
     modal.classList.remove('active');
     modal.setAttribute('aria-hidden', 'true');
     document.body.style.overflow = '';
     setTimeout(() => {
       modalImg.src = '';
-    }, 250);
+    }, 200);
   }
 
-  screenshotWindows.forEach(win => {
-    win.addEventListener('click', () => {
-      const imgSrc = win.getAttribute('data-zoom-img') || win.querySelector('img')?.src;
-      const caption = win.getAttribute('data-caption') || '';
-      if (imgSrc) {
-        openModal(imgSrc, caption);
-      }
+  // Bind to image-viewer-box elements
+  const viewerBoxes = document.querySelectorAll('.image-viewer-box');
+  viewerBoxes.forEach(box => {
+    box.addEventListener('click', () => {
+      const src = box.getAttribute('data-zoom-src') || box.querySelector('img')?.src;
+      const caption = box.getAttribute('data-caption') || '';
+      if (src) openLightbox(src, caption);
     });
   });
 
-  if (backdrop) backdrop.addEventListener('click', closeModal);
-  if (closeBtn) closeBtn.addEventListener('click', closeModal);
+  if (backdrop) backdrop.addEventListener('click', closeLightbox);
+  if (closeBtn) closeBtn.addEventListener('click', closeLightbox);
 
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && modal.classList.contains('active')) {
-      closeModal();
+      closeLightbox();
     }
   });
 }
